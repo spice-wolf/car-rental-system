@@ -3,6 +3,7 @@ package com.pengwei.www.datasource;
 import com.pengwei.www.config.Configuration;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -54,7 +55,7 @@ public class ConnectionPool {
                     max = Configuration.getMaxConnection();
 
                     for (int i = 0; i < Integer.parseInt(min); i++) {
-                        // TODO: 创建数据库连接
+                        pool.add(createConnection());
                         poolSize++;
                     }
                 }
@@ -95,7 +96,7 @@ public class ConnectionPool {
         }
 
         for (int i = 0; i < step; i++) {
-            // TODO: 创建数据库连接
+            pool.offer(createConnection());
             poolSize++;
         }
     }
@@ -126,5 +127,26 @@ public class ConnectionPool {
         }
 
         poolSize = 0;
+    }
+
+    /**
+     * 创建一个数据库连接
+     *
+     * @return 数据库连接
+     */
+    private static Connection createConnection() {
+        Connection conn = null;
+        try {
+            Class.forName(Configuration.getJdbcName());
+            conn = DriverManager.getConnection(Configuration.getDbUrl(), Configuration.getDbUserName(), Configuration.getDbPassword());
+        } catch (ClassNotFoundException e) {
+            System.out.println("获取数据库驱动出现异常，请检查数据库驱动是否正确");
+            e.printStackTrace();
+        } catch (SQLException throwables) {
+            System.out.println("获取数据库连接出现异常");
+            throwables.printStackTrace();
+        }
+
+        return conn;
     }
 }
