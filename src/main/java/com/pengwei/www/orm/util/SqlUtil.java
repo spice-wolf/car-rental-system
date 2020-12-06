@@ -5,11 +5,10 @@ import com.pengwei.www.orm.bean.DatabaseBean;
 import com.pengwei.www.orm.bean.TableBean;
 
 import java.lang.reflect.Field;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * sql操作的工具类
@@ -17,6 +16,7 @@ import java.util.List;
  * @author spice
  * @date 2020/12/06 23:34
  */
+@SuppressWarnings("unchecked")
 public class SqlUtil {
 
     /**
@@ -184,5 +184,138 @@ public class SqlUtil {
         return executeDML(connection, sql.toString(), params.toArray());
     }
 
+    /**
+     * 查询多条数据
+     *
+     * @param connection 数据库连接
+     * @param sql sql语句
+     * @param cls 查询的对象
+     * @param params 查询条件参数
+     * @return 查询得到的结果集
+     * @throws Exception 执行查询操作出现的异常
+     */
+    public static List<Object> queryRows(Connection connection, String sql, Class cls, Object[] params) throws Exception {
+        List<Object> list = null;
 
+        ResultSet rs = null;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            fillData(preparedStatement, params);
+            rs = preparedStatement.executeQuery();
+
+            // 获取查询结果集中的元数据
+            ResultSetMetaData metaData = rs.getMetaData();
+
+            // 外层循环(即while循环)负责遍历行数据
+            // 内层循环(即for循环)负责遍历列数据
+            while (rs.next()) {
+                if (list == null) {
+                    list = new ArrayList<>();
+                }
+
+                // 调用无参构造器,创建一个po类对象，用于存储一条数据记录
+                Object objectInRow = cls.getConstructor().newInstance();
+
+                // 把查询得到的一条数据记录封装成一个po类对象
+                for (int i = 0; i < metaData.getColumnCount(); i++) {
+                    // 获取字段名
+                    String columnName = metaData.getColumnName(i + 1);
+                    // 获取字段值
+                    Object columnValue = rs.getObject(i + 1);
+
+                    // 把字段值存储到po类对象中
+                    ReflectUtil.invokeSetter(objectInRow, columnName, columnValue);
+                }
+
+                // 将所有的po类对象封装成一个集合
+                list.add(objectInRow);
+            }
+
+            return list;
+        } catch (Exception e) {
+            throw new Exception(e);
+        } finally {
+            if (Objects.nonNull(rs)) {
+                rs.close();
+            }
+        }
+    }
+
+    /**
+     * 查询一条数据
+     *
+     * @param connection 数据库连接对象
+     * @param sql sql语句
+     * @param cls 查询的对象
+     * @param params 查询条件参数
+     * @return 查询得到的结果
+     * @throws Exception 执行查询操作出现的异常
+     */
+    public static Object queryUniqueRow(Connection connection, String sql, Class cls, Object[] params) throws Exception {
+        Object poObject = null;
+
+        ResultSet rs = null;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            fillData(preparedStatement, params);
+            rs = preparedStatement.executeQuery();
+
+            // 获取查询结果集中的元数据
+            ResultSetMetaData metaData = rs.getMetaData();
+
+            if (rs.next()) {
+                // 调用无参构造器,创建一个po类对象
+                poObject = cls.getConstructor().newInstance();
+
+                // 把查询得到的一条数据记录封装成一个po类对象
+                for (int i = 0; i < metaData.getColumnCount(); i++) {
+                    // 获取字段名
+                    String columnName = metaData.getColumnName(i + 1);
+                    // 获取字段值
+                    Object columnValue = rs.getObject(i + 1);
+
+                    // 把字段值存储到po类对象中
+                    ReflectUtil.invokeSetter(poObject, columnName, columnValue);
+                }
+            }
+
+            return poObject;
+        } catch (SQLException e) {
+            throw new Exception(e);
+        } finally {
+            if (Objects.nonNull(rs)) {
+                rs.close();
+            }
+        }
+    }
+
+    /**
+     * 查询一个值
+     *
+     * @param connection 数据库连接对象
+     * @param sql sql语句
+     * @param params 查询条件参数
+     * @return 查询得到的值
+     * @throws Exception 执行查询操作出现的异常
+     */
+    public static Object queryValue(Connection connection, String sql, Object[] params) throws Exception {
+        Object value = null;
+
+        ResultSet rs = null;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            fillData(preparedStatement, params);
+            rs = preparedStatement.executeQuery();
+
+            // 获取查询的结果(一个值)
+            if (rs.next()) {
+                value = rs.getObject(1);
+            }
+
+            return value;
+        } catch (SQLException e) {
+            throw new Exception(e);
+        } finally {
+            if (Objects.nonNull(rs)) {
+                rs.close();
+            }
+        }
+    }
 }
