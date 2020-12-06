@@ -55,7 +55,7 @@ public class Configuration {
             e.printStackTrace();
         }
 
-        PACKAGE_NAME = prop.getProperty("orm.packageName", "com.demo.www");
+        PACKAGE_NAME = prop.getProperty("orm.packageName", "com.demo.www.po");
         JDBC_NAME = prop.getProperty("orm.jdbcName", "com.mysql.jdbc.Driver");
         DB_URL =  prop.getProperty("orm.dbUrl", "jdbc:mysql://localhost:3306/car_rental_system?useSSL=false&useUnicode=true&characterEncoding=utf8");
         DB_USER_NAME = prop.getProperty("orm.dbUserName", "root");
