@@ -1,5 +1,6 @@
 package com.pengwei.www.orm.util;
 
+import com.pengwei.www.orm.bean.ColumnBean;
 import com.pengwei.www.orm.bean.DatabaseBean;
 import com.pengwei.www.orm.bean.TableBean;
 
@@ -27,7 +28,7 @@ public class SqlUtil {
      * @return 执行结果
      * @throws Exception 执行过程中的异常
      */
-    private int executeDML(Connection connection, String sql, Object[] params) throws Exception {
+    private static int executeDML(Connection connection, String sql, Object[] params) throws Exception {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)){
             fillData(preparedStatement, params);
             return preparedStatement.executeUpdate();
@@ -41,7 +42,7 @@ public class SqlUtil {
      *
      * @param preparedStatement PreparedStatement对象
      * @param params 要填充的数据
-     * @throws SQLException 填充数据过程出现异常
+     * @throws SQLException 填充数据过程出现的异常
      */
     private static void fillData(PreparedStatement preparedStatement, Object[] params) throws SQLException {
         if (params == null || params.length == 0) {
@@ -59,10 +60,10 @@ public class SqlUtil {
      *
      * @param connection 数据库连接
      * @param obj 存储数据的对象
-     * @return 操作结果
-     * @throws Exception 执行插入操作出现异常
+     * @return 插入的条数
+     * @throws Exception 执行插入操作出现的异常
      */
-    public int insert(Connection connection, Object obj) throws Exception {
+    public static int insert(Connection connection, Object obj) throws Exception {
         Class cls = obj.getClass();
         // 获取字节码文件对应的数据库表信息
         TableBean tableInfo = DatabaseBean.getInstance().getRelationMap().get(cls);
@@ -98,4 +99,90 @@ public class SqlUtil {
 
         return executeDML(connection, sql.toString(), params.toArray());
     }
+
+    /**
+     * 根据主键id删除一条数据
+     *
+     * @param connection 数据库连接
+     * @param cls 操作对象的Class
+     * @param id 数据的id（主键）
+     * @return 删除的条数
+     * @throws Exception 执行删除操作出现的异常
+     */
+    public static int delete(Connection connection, Class cls, Object id) throws Exception {
+        // 获取字节码文件对应的数据库表信息
+        TableBean tableBean = DatabaseBean.getInstance().getRelationMap().get(cls);
+        // 获取该数据库表的唯一主键的信息
+        ColumnBean uniquePriKey = tableBean.getUniquePriKey();
+        // 生成delete语句
+        StringBuilder sql = new StringBuilder("DELETE FROM ").append(tableBean.getTableName()).append(" WHERE ")
+                .append(uniquePriKey.getColumnName()).append(" = ?");
+
+        return executeDML(connection, sql.toString(), new Object[]{ id });
+    }
+
+    /**
+     * 根据对象（需包含主键的值）删除一条数据
+     *
+     * @param connection 数据库连接
+     * @param obj 要删除的操作
+     * @return 删除的条数
+     * @throws Exception 执行删除操作出现的异常
+     */
+    public static int delete(Connection connection, Object obj) throws Exception {
+        Class cls = obj.getClass();
+        // 获取字节码文件对应的数据库表信息
+        TableBean tableBean = DatabaseBean.getInstance().getRelationMap().get(cls);
+        // 获取该数据库表的唯一主键的信息
+        ColumnBean uniquePriKey = tableBean.getUniquePriKey();
+        // 获取唯一主键的值
+        Object priKeyValue = ReflectUtil.invokeGetter(obj, uniquePriKey.getColumnName());
+
+        return delete(connection, cls, priKeyValue);
+    }
+
+    /**
+     * 更新数据库的一条数据
+     *
+     * @param connection 数据库连接
+     * @param obj 要更新的对象（至少包含主键的值，可以包含要更新的值）
+     * @param columnNames 要更新的字段
+     * @return 更新的条数
+     * @throws Exception 执行更新操作出现的异常
+     */
+    public static int update(Connection connection, Object obj, String[] columnNames) throws Exception {
+        Class cls = obj.getClass();
+        // 获取字节码文件对应的数据库表信息
+        TableBean tableBean = DatabaseBean.getInstance().getRelationMap().get(cls);
+        // 获取该数据库表的唯一主键的信息
+        ColumnBean uniquePriKey = tableBean.getUniquePriKey();
+
+        // 用来存放预编译update语句时所需的所有参数
+        List<Object> params = new ArrayList<>();
+        // 完整的update语句的前半段，例如：UPDATE user SET
+        StringBuilder sqlOne = new StringBuilder("UPDATE ").append(tableBean.getTableName()).append(" SET ");
+        // 完整的update语句的后半段，例如：WHERE user_id = ?
+        StringBuilder sqlTwo = new StringBuilder(" WHERE ").append(uniquePriKey.getColumnName()).append(" = ?");
+
+        // 将所要修改的字段拼入update语句中
+        for (String columnName : columnNames) {
+            if (columnName == null) {
+                // 有可能传入null值，但是null值应该被跳过
+                continue;
+            }
+            Object columnValue = ReflectUtil.invokeGetter(obj, columnName);
+            params.add(columnValue);
+            sqlOne.append(", ").append(NameUtil.columnNameConvertor(columnName)).append(" = ?");
+        }
+
+        // 最后，将该数据库表的唯一主键的值加入参数列表中
+        params.add(ReflectUtil.invokeGetter(obj, uniquePriKey.getColumnName()));
+
+        // 生成完整的update语句
+        StringBuilder sql = new StringBuilder(sqlOne.toString().replaceFirst(", ", "")).append(sqlTwo);
+
+        return executeDML(connection, sql.toString(), params.toArray());
+    }
+
+
 }
