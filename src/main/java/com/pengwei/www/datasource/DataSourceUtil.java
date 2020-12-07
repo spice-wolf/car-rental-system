@@ -31,29 +31,9 @@ public class DataSourceUtil {
     /**
      * 关闭数据库连接
      *
-     * @param rs ResultSet对象
-     * @param preparedStatement PreparedStatement对象
      * @param connection Connection对象
      */
-    public static void closeConnection(ResultSet rs, PreparedStatement preparedStatement, Connection connection) {
-        if (Objects.nonNull(rs)) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                System.out.println("程序异常，关闭数据库连接失败");
-                e.printStackTrace();
-            }
-        }
-
-        if (Objects.nonNull(preparedStatement)) {
-            try {
-                preparedStatement.close();
-            } catch (SQLException e) {
-                System.out.println("程序异常，关闭数据库连接失败");
-                e.printStackTrace();
-            }
-        }
-
+    public static void closeConnection(Connection connection) {
         if (Objects.nonNull(connection)) {
             connectionPool.recycle(connection);
         }

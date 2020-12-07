@@ -64,7 +64,7 @@ public class SqlUtil {
      * @throws Exception 执行插入操作出现的异常
      */
     public static int insert(Connection connection, Object obj) throws Exception {
-        Class cls = obj.getClass();
+        Class<?> cls = obj.getClass();
         // 获取字节码文件对应的数据库表信息
         TableBean tableInfo = DatabaseBean.getInstance().getRelationMap().get(cls);
 
@@ -109,7 +109,7 @@ public class SqlUtil {
      * @return 删除的条数
      * @throws Exception 执行删除操作出现的异常
      */
-    public static int delete(Connection connection, Class cls, Object id) throws Exception {
+    public static int delete(Connection connection, Class<?> cls, Object id) throws Exception {
         // 获取字节码文件对应的数据库表信息
         TableBean tableBean = DatabaseBean.getInstance().getRelationMap().get(cls);
         // 获取该数据库表的唯一主键的信息
@@ -130,7 +130,7 @@ public class SqlUtil {
      * @throws Exception 执行删除操作出现的异常
      */
     public static int delete(Connection connection, Object obj) throws Exception {
-        Class cls = obj.getClass();
+        Class<?> cls = obj.getClass();
         // 获取字节码文件对应的数据库表信息
         TableBean tableBean = DatabaseBean.getInstance().getRelationMap().get(cls);
         // 获取该数据库表的唯一主键的信息
@@ -151,7 +151,7 @@ public class SqlUtil {
      * @throws Exception 执行更新操作出现的异常
      */
     public static int update(Connection connection, Object obj, String[] columnNames) throws Exception {
-        Class cls = obj.getClass();
+        Class<?> cls = obj.getClass();
         // 获取字节码文件对应的数据库表信息
         TableBean tableBean = DatabaseBean.getInstance().getRelationMap().get(cls);
         // 获取该数据库表的唯一主键的信息
@@ -189,13 +189,13 @@ public class SqlUtil {
      *
      * @param connection 数据库连接
      * @param sql sql语句
-     * @param cls 查询的对象
+     * @param obj 查询的对象
      * @param params 查询条件参数
      * @return 查询得到的结果集
      * @throws Exception 执行查询操作出现的异常
      */
-    public static List<Object> queryRows(Connection connection, String sql, Class cls, Object[] params) throws Exception {
-        List<Object> list = null;
+    public static <E> List<E> queryRows(Connection connection, String sql, E obj, Object[] params) throws Exception {
+        List<E> list = null;
 
         ResultSet rs = null;
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -213,7 +213,8 @@ public class SqlUtil {
                 }
 
                 // 调用无参构造器,创建一个po类对象，用于存储一条数据记录
-                Object objectInRow = cls.getConstructor().newInstance();
+
+                Object objectInRow = obj.getClass().getConstructor().newInstance();
 
                 // 把查询得到的一条数据记录封装成一个po类对象
                 for (int i = 0; i < metaData.getColumnCount(); i++) {
@@ -227,7 +228,7 @@ public class SqlUtil {
                 }
 
                 // 将所有的po类对象封装成一个集合
-                list.add(objectInRow);
+                list.add((E) objectInRow);
             }
 
             return list;
@@ -250,7 +251,7 @@ public class SqlUtil {
      * @return 查询得到的结果
      * @throws Exception 执行查询操作出现的异常
      */
-    public static Object queryUniqueRow(Connection connection, String sql, Class cls, Object[] params) throws Exception {
+    public static Object queryUniqueRow(Connection connection, String sql, Class<?> cls, Object[] params) throws Exception {
         Object poObject = null;
 
         ResultSet rs = null;

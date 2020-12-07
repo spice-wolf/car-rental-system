@@ -21,7 +21,7 @@ public class UserRole {
     /**
      * 角色id
      */
-    private Long roleId;
+    private Integer roleId;
 
     public UserRole() {
     }
@@ -42,11 +42,11 @@ public class UserRole {
         this.userId = userId;
     }
 
-    public Long getRoleId() {
+    public Integer getRoleId() {
         return roleId;
     }
 
-    public void setRoleId(Long roleId) {
+    public void setRoleId(Integer roleId) {
         this.roleId = roleId;
     }
 }
