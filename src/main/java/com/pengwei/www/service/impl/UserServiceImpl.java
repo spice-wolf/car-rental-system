@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public CommonResult<Void> login(User user) {
-        if (Objects.nonNull(user)) {
+        if (Objects.isNull(user)) {
             return new CommonResult<>(CodeEnum.ACCOUNT_NOT_EXIST, "用户不存在", false);
         }
 
