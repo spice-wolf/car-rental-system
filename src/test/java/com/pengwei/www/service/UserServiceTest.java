@@ -37,4 +37,22 @@ public class UserServiceTest {
         rightUser.setPassword("123456");
         Assert.assertEquals(CodeEnum.SUCCESS, userService.login(rightUser).getCode());
     }
+
+    @Test
+    public void registerTest() {
+        User nullUser = null;
+        Assert.assertEquals(CodeEnum.FAIL, userService.register(nullUser).getCode());
+
+        User userWithNoName = new User();
+        userWithNoName.setName("");
+        Assert.assertEquals(CodeEnum.FAIL, userService.register(userWithNoName).getCode());
+
+        User userWithNoPassword = new User();
+        userWithNoPassword.setName("spice");
+        userWithNoPassword.setPassword("");
+        Assert.assertEquals(CodeEnum.FAIL, userService.register(userWithNoPassword).getCode());
+
+        // 【用户名已被使用】的情况暂不测试
+        // 【注册成功】的情况暂不测试
+    }
 }

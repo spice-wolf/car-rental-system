@@ -39,4 +39,22 @@ public class UserDao {
             DataSourceUtil.closeConnection(connection);
         }
     }
+
+    /**
+     * 保存一个用户对象
+     *
+     * @param user User对象
+     * @return 保存成功的数据条数
+     */
+    public int saveUser(User user) {
+        Connection connection = DataSourceUtil.getConnection();
+        try {
+            return SqlUtil.insert(connection, user);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        } finally {
+            DataSourceUtil.closeConnection(connection);
+        }
+    }
 }

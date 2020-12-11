@@ -30,11 +30,15 @@ public class CommonResult<T> {
     }
 
     public static <E> CommonResult<E> operateSuccess(E e) {
-        return new CommonResult<E>(CodeEnum.SUCCESS, "操作成功", true, e);
+        return new CommonResult<>(CodeEnum.SUCCESS, "操作成功", true, e);
     }
 
     public static <E> CommonResult<E> operateFailWithMessage(String message) {
-        return new CommonResult<E>(CodeEnum.FAIL, message, false);
+        return new CommonResult<>(CodeEnum.FAIL, message, false);
+    }
+
+    public static CommonResult operateSuccess() {
+        return new CommonResult<>(CodeEnum.SUCCESS, "操作成功", true, null);
     }
 
     public CodeEnum getCode() {

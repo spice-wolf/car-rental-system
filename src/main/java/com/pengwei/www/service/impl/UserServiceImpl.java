@@ -55,11 +55,29 @@ public class UserServiceImpl implements UserService {
         LoginDataProvider.getInstance().setLoginUser(loginUser);
         LoginDataProvider.getInstance().setRoleList(roleList);
 
-        return CommonResult.operateSuccess(null);
+        return CommonResult.operateSuccess();
     }
 
     @Override
     public CommonResult<Void> register(User user) {
-        return null;
+        if (Objects.isNull(user) || StringUtil.isEmpty(user.getName())) {
+            return CommonResult.operateFailWithMessage("用户名不能为空");
+        }
+
+        if (StringUtil.isEmpty(user.getPassword())) {
+            return CommonResult.operateFailWithMessage("密码不能为空");
+        }
+
+        User userWithNameOnly = new User();
+        userWithNameOnly.setName(userWithNameOnly.getName());
+        if (Objects.nonNull(userDao.selectUser(userWithNameOnly))) {
+            return CommonResult.operateFailWithMessage("用户名已被使用，请更换");
+        }
+
+        if (userDao.saveUser(user) == 1) {
+            return CommonResult.operateSuccess();
+        } else {
+            return CommonResult.operateFailWithMessage("程序出错，注册失败");
+        }
     }
 }
