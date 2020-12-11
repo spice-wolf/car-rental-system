@@ -16,7 +16,7 @@ public class Car {
     private Long id;
 
     /**
-     * 汽车的名称
+     * 汽车的名称，必需
      */
     private String name;
 
@@ -26,7 +26,7 @@ public class Car {
     private String factory;
 
     /**
-     * 车牌号
+     * 车牌号，必需
      */
     private String number;
 
@@ -38,11 +38,13 @@ public class Car {
     /**
      * 租借类型
      * 0表示小时，1表示天
+     * 必需
      */
     private Byte rentType;
 
     /**
      * 租金，单位：元
+     * 必需
      */
     private Double rent;
 
